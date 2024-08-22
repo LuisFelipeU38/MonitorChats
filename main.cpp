@@ -1,24 +1,27 @@
 #include <iostream>
 #include "ClienteChat.h"
 #include "ServidorChat.h"
+#include "MonitorChat.h"
 
 int main(int argc, char* argv[]) {
-    if (argc < 3) {
-        std::cerr << "Uso: " << argv[0] << " <modo> <direccionIP> <puerto>\n";
-        std::cerr << "Modos disponibles: servidor, cliente\n";
+    if (argc < 4) {
+        std::cerr << "Uso: " << argv[0] << " <modo> <direccionIP> <puerto> <puertoMonitoreo>\n";
+        std::cerr << "Modos disponibles: servidor, cliente, monitor\n";
         return 1;
     }
 
     std::string modo = argv[1];
 
     if (modo == "servidor") {
-        if (argc < 3) {
-            std::cerr << "Uso: " << argv[0] << " servidor <puerto>\n";
+        if (argc < 4) {
+            std::cerr << "Uso: " << argv[0] << " servidor <puerto> <puertoMonitoreo>\n";
             return 1;
         }
         int puerto = std::stoi(argv[2]);
-        ServidorChat servidor(puerto);  // Inicializa el servidor con el puerto proporcionado
+        int puertoMonitoreo = std::stoi(argv[3]);
+        ServidorChat servidor(puerto, puertoMonitoreo);  // Inicializa el servidor con los puertos proporcionados
         servidor.iniciar();  // Inicia el servidor
+        servidor.iniciarMonitoreo();  // Inicia el servicio de monitoreo
     } else if (modo == "cliente") {
         if (argc < 4) {
             std::cerr << "Uso: " << argv[0] << " cliente <direccionIP> <puerto>\n";
@@ -35,6 +38,15 @@ int main(int argc, char* argv[]) {
         }
 
         cliente.desconectar();  // Desconecta del servidor
+    } else if (modo == "monitor") {
+        if (argc < 4) {
+            std::cerr << "Uso: " << argv[0] << " monitor <direccionIP> <puertoMonitoreo>\n";
+            return 1;
+        }
+        std::string direccionIP = argv[2];
+        int puertoMonitoreo = std::stoi(argv[3]);
+        // Crear y ejecutar el monitor
+        obtenerInformacionServidor(direccionIP, puertoMonitoreo);
     } else {
         std::cerr << "Modo desconocido: " << modo << "\n";
         return 1;
@@ -42,3 +54,4 @@ int main(int argc, char* argv[]) {
 
     return 0;
 }
+

@@ -6,8 +6,8 @@
 #include <cstring>
 
 // Constructor que inicializa el puerto del servidor
-ServidorChat::ServidorChat(int puerto)
-    : puerto(puerto), descriptorServidor(-1) {}
+ServidorChat::ServidorChat(int puerto, int puertoMonitoreo)
+    : puerto(puerto), puertoMonitoreo(puertoMonitoreo), descriptorServidor(-1), descriptorMonitoreo(-1) {}
 
 // Método para iniciar el servidor
 void ServidorChat::iniciar() {
@@ -37,6 +37,9 @@ void ServidorChat::iniciar() {
 
     std::cout << "Servidor iniciado en el puerto " << puerto << ". Esperando conexiones...\n";
 
+    std::thread hiloMonitoreo(&ServidorChat::iniciarMonitoreo, this);
+    hiloMonitoreo.detach();
+
     // Aceptar conexiones entrantes
     while (true) {
         sockaddr_in direccionCliente;
@@ -51,6 +54,49 @@ void ServidorChat::iniciar() {
         // Crear un hilo para manejar el cliente
         std::thread hiloCliente(&ServidorChat::manejarCliente, this, descriptorCliente);
         hiloCliente.detach();
+    }
+
+}
+
+void ServidorChat::iniciarMonitoreo() {
+    descriptorMonitoreo = socket(AF_INET, SOCK_STREAM, 0);
+    if (descriptorMonitoreo == -1) {
+        std::cerr << "Error al crear el socket de monitoreo.\n";
+        return;
+    }
+
+    sockaddr_in direccionMonitoreo;
+    direccionMonitoreo.sin_family = AF_INET;
+    direccionMonitoreo.sin_port = htons(puertoMonitoreo);
+    direccionMonitoreo.sin_addr.s_addr = INADDR_ANY;
+
+    if (bind(descriptorMonitoreo, (sockaddr*)&direccionMonitoreo, sizeof(direccionMonitoreo)) == -1) {
+        std::cerr << "Error al hacer bind del socket de monitoreo en el puerto " << puertoMonitoreo << ".\n";
+        close(descriptorMonitoreo);
+        return;
+    }
+
+    if (listen(descriptorMonitoreo, 1) == -1) {
+        std::cerr << "Error al poner el socket de monitoreo en modo escucha.\n";
+        close(descriptorMonitoreo);
+        return;
+    }
+
+    std::cout << "Servicio de monitoreo iniciado en el puerto " << puertoMonitoreo << ".\n";
+
+    while (true) {
+        sockaddr_in direccionCliente;
+        socklen_t tamanoDireccionCliente = sizeof(direccionCliente);
+        int descriptorClienteMonitoreo = accept(descriptorMonitoreo, (sockaddr*)&direccionCliente, &tamanoDireccionCliente);
+
+        if (descriptorClienteMonitoreo == -1) {
+            std::cerr << "Error al aceptar la conexión de monitoreo.\n";
+            continue;
+        }
+
+        // Enviar información del servidor al programa de monitoreo
+        enviarInformacionServidor(descriptorClienteMonitoreo);
+        close(descriptorClienteMonitoreo);
     }
 }
 
@@ -150,4 +196,21 @@ void ServidorChat::enviarDetallesConexion(int descriptorCliente) {
     std::lock_guard<std::mutex> lock(mutexUsuarios);
     std::string detalles = "Número de usuarios conectados: " + std::to_string(usuarios.size()) + "\n";
     send(descriptorCliente, detalles.c_str(), detalles.size(), 0);
+}
+
+// Enviar información básica del servidor y los usuarios conectados
+void ServidorChat::enviarInformacionServidor(int descriptorCliente) {
+    std::lock_guard<std::mutex> lock(mutexUsuarios);
+    
+    std::string informacion = "Información del servidor:\n";
+    informacion += "Número de usuarios conectados: " + std::to_string(usuarios.size()) + "\n";
+    
+    for (const auto& usuario : usuarios) {
+        auto tiempoConexion = std::chrono::duration_cast<std::chrono::seconds>(
+            std::chrono::system_clock::now() - usuario.obtenerTiempoConexion()).count();
+        informacion += "Usuario: " + usuario.obtenerNombreUsuario() + ", Tiempo conectado: " + 
+                       std::to_string(tiempoConexion) + " segundos\n";
+    }
+    
+    send(descriptorCliente, informacion.c_str(), informacion.size(), 0);
 }
