@@ -24,7 +24,7 @@ private:
     int puerto;  // Puerto en el que escucha el servidor
     int puertoMonitoreo;
     int descriptorServidor;  // Descriptor del socket del servidor
-     int descriptorMonitoreo;
+    int descriptorMonitoreo;
     std::vector<Usuario> usuarios;  // Lista de usuarios conectados
     std::mutex mutexUsuarios;  // Mutex para proteger el acceso a la lista de usuarios
 };

@@ -98,6 +98,7 @@ void ServidorChat::iniciarMonitoreo() {
         enviarInformacionServidor(descriptorClienteMonitoreo);
         close(descriptorClienteMonitoreo);
     }
+    //std::cout << "Servicio de monitoreo iniciado en el puerto " << puertoMonitoreo << ".\n";
 }
 
 // Manejar la comunicación con un cliente

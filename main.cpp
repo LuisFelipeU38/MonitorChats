@@ -1,4 +1,8 @@
 #include <iostream>
+#include <vector>
+#include <utility>
+#include <thread>
+#include <chrono>
 #include "ClienteChat.h"
 #include "ServidorChat.h"
 #include "MonitorChat.h"
@@ -54,11 +58,16 @@ int main(int argc, char* argv[]) {
             // Guardar el par de IP y puerto en el vector
             servidores.emplace_back(direccionIP, puertoMonitoreo);
         }
+        
+        while (true) {
+            // Llamar a obtenerInformacionServidor para cada par de IP y puerto
+            for (const auto& servidor : servidores) {
+                std::cout << "Mandando a " << servidor.first << " en el puerto " << servidor.second << ".\n";
+                obtenerInformacionServidor(servidor.first, servidor.second);
+            }
 
-        // Llamar a obtenerInformacionServidor para cada par de IP y puerto
-        for (const auto& servidor : servidores) {
-            std::cout << "Mandando a " << servidor.first << " en el puerto " << servidor.second << ".\n";
-            obtenerInformacionServidor(servidor.first, servidor.second);
+            // Pausa de 5 segundos antes de la siguiente actualización
+            std::this_thread::sleep_for(std::chrono::seconds(5));
         }
 
     } else {
