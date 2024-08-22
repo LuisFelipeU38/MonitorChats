@@ -43,10 +43,24 @@ int main(int argc, char* argv[]) {
             std::cerr << "Uso: " << argv[0] << " monitor <direccionIP> <puertoMonitoreo>\n";
             return 1;
         }
-        std::string direccionIP = argv[2];
-        int puertoMonitoreo = std::stoi(argv[3]);
-        // Crear y ejecutar el monitor
-        obtenerInformacionServidor(direccionIP, puertoMonitoreo);
+// Vector para almacenar las direcciones IP y puertos
+        std::vector<std::pair<std::string, int>> servidores;
+
+        // Recorrer los argumentos desde el índice 2
+        for (int i = 2; i < argc; i += 2) {
+            std::string direccionIP = argv[i];
+            int puertoMonitoreo = std::stoi(argv[i + 1]);
+
+            // Guardar el par de IP y puerto en el vector
+            servidores.emplace_back(direccionIP, puertoMonitoreo);
+        }
+
+        // Llamar a obtenerInformacionServidor para cada par de IP y puerto
+        for (const auto& servidor : servidores) {
+            std::cout << "Mandando a " << servidor.first << " en el puerto " << servidor.second << ".\n";
+            obtenerInformacionServidor(servidor.first, servidor.second);
+        }
+
     } else {
         std::cerr << "Modo desconocido: " << modo << "\n";
         return 1;

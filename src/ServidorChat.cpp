@@ -202,7 +202,7 @@ void ServidorChat::enviarDetallesConexion(int descriptorCliente) {
 void ServidorChat::enviarInformacionServidor(int descriptorCliente) {
     std::lock_guard<std::mutex> lock(mutexUsuarios);
     
-    std::string informacion = "Información del servidor:\n";
+    std::string informacion = "Datos usuario:\n";
     informacion += "Número de usuarios conectados: " + std::to_string(usuarios.size()) + "\n";
     
     for (const auto& usuario : usuarios) {
@@ -213,4 +213,6 @@ void ServidorChat::enviarInformacionServidor(int descriptorCliente) {
     }
     
     send(descriptorCliente, informacion.c_str(), informacion.size(), 0);
+    
+    std::cout << "Enviando información al monitor...\n";
 }
