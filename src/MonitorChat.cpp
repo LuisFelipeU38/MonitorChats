@@ -21,13 +21,13 @@ void obtenerInformacionServidor(const std::string& direccionIP, int puertoMonito
     std::cout << "Conectando al servidor en " << direccionIP << " : " << puertoMonitoreo << "\n";
     if (connect(descriptorMonitor, (sockaddr*)&direccionServidor, sizeof(direccionServidor)) == -1) {
         std::cerr << "Error al conectar al servidor de monitoreo" << direccionIP << ":" << puertoMonitoreo << "\n";;
-        close(descriptorMonitor); // Asegúrate de cerrar el socket en caso de error.
+        close(descriptorMonitor); 
         return;
     }
     char buffer[1024];
     ssize_t bytesRecibidos = recv(descriptorMonitor, buffer, sizeof(buffer) - 1, 0);
     if (bytesRecibidos > 0) {
-        buffer[bytesRecibidos] = '\0'; // Añadir terminador nulo al final del buffer.
+        buffer[bytesRecibidos] = '\0'; 
         std::cout << "Conexión exitosa al servidor" << direccionIP << " : " << puertoMonitoreo << "\n" << buffer << std::endl;;
     } else {
         std::cerr << "Error al recibir la información del servidor en" << direccionIP << ":" << puertoMonitoreo << "\n";

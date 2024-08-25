@@ -98,7 +98,6 @@ void ServidorChat::iniciarMonitoreo() {
         enviarInformacionServidor(descriptorClienteMonitoreo);
         close(descriptorClienteMonitoreo);
     }
-    //std::cout << "Servicio de monitoreo iniciado en el puerto " << puertoMonitoreo << ".\n";
 }
 
 // Manejar la comunicación con un cliente
@@ -115,14 +114,13 @@ void ServidorChat::manejarCliente(int descriptorCliente) {
     }
 
     nombreUsuario = std::string(buffer, bytesRecibidos);
-    nombreUsuario.erase(nombreUsuario.find_last_not_of(" \n\r\t") + 1); // Eliminar espacios en blanco
+    nombreUsuario.erase(nombreUsuario.find_last_not_of(" \n\r\t") + 1); 
 
     {
         std::lock_guard<std::mutex> lock(mutexUsuarios);
         usuarios.emplace_back(nombreUsuario, descriptorCliente);
     }
 
-    // Notificar a todos los usuarios que un nuevo usuario se ha conectado
     std::string mensajeBienvenida = nombreUsuario + " se ha conectado al chat.\n";
     enviarMensajeATodos(mensajeBienvenida, descriptorCliente);
 
